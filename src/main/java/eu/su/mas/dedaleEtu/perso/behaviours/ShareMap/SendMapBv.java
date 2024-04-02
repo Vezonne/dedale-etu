@@ -28,6 +28,7 @@ public class SendMapBv extends OneShotBehaviour{
     @Override
     public void action() {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setSender(myAgent.getAID());
         msg.setProtocol("SHARE-MAP");
         for(String agent : receivers){
             msg.addReceiver(new AID(agent, AID.ISLOCALNAME));
@@ -42,6 +43,7 @@ public class SendMapBv extends OneShotBehaviour{
         }
 
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+        System.out.println(this.myAgent.getLocalName() + " : sent map to " + receivers);
     }
     
 }

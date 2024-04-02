@@ -41,6 +41,7 @@ public class ReceiveMapBv extends OneShotBehaviour{
             e.printStackTrace();
         }
         this.myMap.mergeMap(sgreceived);
+        System.out.println(this.myAgent.getLocalName() + " : received map from " + msg.getSender().getLocalName());
     }
   }
 

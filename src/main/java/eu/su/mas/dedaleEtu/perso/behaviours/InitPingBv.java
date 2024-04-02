@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.perso.behaviours;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,12 +54,12 @@ public class InitPingBv extends OneShotBehaviour{
         exploFSM.registerLastState(new EmptyBv(null), EndExplo);
         // Send Map
         exploFSM.registerState(new SendPingBv(this.myAgent, this.list_agentNames, "PING"), SendPing);
-        exploFSM.registerState(new ReceivePingBv(this.myAgent, 100, "PONG", this.list_senderNames), ReceivePong);
+        exploFSM.registerState(new ReceivePingBv(this.myAgent, 150, "PONG", this.list_senderNames), ReceivePong);
         exploFSM.registerState(new SendMapBv(this.myAgent, this.myMap, this.list_senderNames), SendMap);
         // Receive Ping
-        exploFSM.registerState(new ReceivePingBv(this.myAgent, 100, "PING", this.list_senderNames), ReceivePing);
+        exploFSM.registerState(new ReceivePingBv(this.myAgent, 150, "PING", this.list_senderNames), ReceivePing);
         exploFSM.registerState(new SendPingBv(this.myAgent, this.list_senderNames, "PONG"), SendPong);
-        exploFSM.registerState(new ReceiveMapBv(this.myAgent, 100, this.myMap), ReceiveMap);
+        exploFSM.registerState(new ReceiveMapBv(this.myAgent, 150, this.myMap), ReceiveMap);
 
         // TRANSITIONS
         exploFSM.registerTransition(ExploCount, ExploCount, 0);
@@ -77,6 +78,13 @@ public class InitPingBv extends OneShotBehaviour{
         exploFSM.registerTransition(ExploCount, EndExplo, 2);
 
         this.myAgent.addBehaviour(exploFSM);
+
+        try {
+        	System.out.println("Press enter in the console to allow the agent "+this.myAgent.getLocalName() +" to execute its next move");
+        	System.in.read();
+        } catch (IOException e) {
+        	e.printStackTrace();
+        }
     }
     
 }
