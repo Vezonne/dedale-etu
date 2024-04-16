@@ -32,11 +32,11 @@ public class ExploCountBv extends OneShotBehaviour{
         super(myAgent);
         this.myMap = myMap;
         this.nodeCount = nodeCount;
-		exitValue = 0;
     }
 
     @Override
     public void action() {
+		exitValue = 0;
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
         if (myPosition!=null){
