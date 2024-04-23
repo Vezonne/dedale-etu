@@ -60,11 +60,11 @@ public class InitPingBv extends OneShotBehaviour{
         exploFSM.registerState(new SendPingBv(this.myAgent, this.list_agentNames, "PING"), SendPing);
         exploFSM.registerState(new ReceivePingBv(this.myAgent, 150, "PONG", this.list_senderNames), ReceivePong);
         exploFSM.registerState(new SendMapBv(this.myAgent, this.myMap, this.list_senderNames), SendMap);
-        exploFSM.registerState(new ReceiveMapBv(this.myAgent, 150, this.myMap), ReceiveResponse);
+        exploFSM.registerState(new ReceiveMapBv(this.myAgent, 150, this.myMap, this.list_senderNames), ReceiveResponse);
         // Receive Ping
         exploFSM.registerState(new ReceivePingBv(this.myAgent, 150, "PING", this.list_senderNames), ReceivePing);
         exploFSM.registerState(new SendPingBv(this.myAgent, this.list_senderNames, "PONG"), SendPong);
-        exploFSM.registerState(new ReceiveMapBv(this.myAgent, 150, this.myMap), ReceiveMap);
+        exploFSM.registerState(new ReceiveMapBv(this.myAgent, 150, this.myMap, this.list_senderNames), ReceiveMap);
         exploFSM.registerState(new SendMapBv(this.myAgent, this.myMap, this.list_senderNames), SendResponse);
 
         // TRANSITIONS
@@ -73,13 +73,16 @@ public class InitPingBv extends OneShotBehaviour{
 
         exploFSM.registerTransition(ReceivePing, SendPong, 1);
         exploFSM.registerDefaultTransition(SendPong, ReceiveMap);
-        exploFSM.registerDefaultTransition(ReceiveMap, ExploCount);
-
+        exploFSM.registerTransition(ReceiveMap, SendResponse, 1);
+        exploFSM.registerTransition(ReceiveMap, ExploCount, 0);
+        exploFSM.registerDefaultTransition(SendResponse, ExploCount);
+        
         exploFSM.registerTransition(ReceivePing, SendPing, 0);
         exploFSM.registerDefaultTransition(SendPing, ReceivePong);
         exploFSM.registerTransition(ReceivePong, ExploCount, 0);
         exploFSM.registerTransition(ReceivePong, SendMap, 1);
-        exploFSM.registerDefaultTransition(SendMap, ExploCount);
+        exploFSM.registerDefaultTransition(SendMap, ReceiveResponse);
+        exploFSM.registerDefaultTransition(ReceiveResponse, ExploCount);
 
         exploFSM.registerTransition(ExploCount, EndExplo, 2);
 

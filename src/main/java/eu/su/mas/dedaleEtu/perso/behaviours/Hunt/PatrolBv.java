@@ -1,8 +1,8 @@
-package eu.su.mas.dedaleEtu.perso.behaviours.Explo;
+package eu.su.mas.dedaleEtu.perso.behaviours.Hunt;
 
+import java.util.Random;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
@@ -14,7 +14,8 @@ import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation.MapAttribute;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 
-public class ExploCountBv extends OneShotBehaviour{
+public class PatrolBv extends OneShotBehaviour{
+
 
     private static final long serialVersionUID = 1L;
 
@@ -22,12 +23,14 @@ public class ExploCountBv extends OneShotBehaviour{
 	private int nodeCount;
     private int exitValue;
     private MapRepresentation myMap;
+    private List<Couple<String,Location>> agentTab;
 	private Random r;
 	private int limit;
 
-    public ExploCountBv(final Agent myAgent, MapRepresentation myMap, int nodeCount) {
+    public PatrolBv(final Agent myAgent, MapRepresentation myMap, List<Couple<String,Location>> agentTab, int nodeCount) {
         super(myAgent);
         this.myMap = myMap;
+        this.agentTab = agentTab;
         this.nodeCount = nodeCount;
     }
 

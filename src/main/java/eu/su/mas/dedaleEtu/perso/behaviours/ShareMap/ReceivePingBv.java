@@ -30,10 +30,7 @@ public class ReceivePingBv extends OneShotBehaviour{
 
     @Override
     public void action() {
-        // if (protocol.equals("PING")) {
-        //     System.out.println(this.myAgent.getLocalName() + " : waiting for ping");
-        //     this.block();
-        // }
+        System.out.println(this.myAgent.getLocalName() + " : waiting for " + protocol);
 
         MessageTemplate msgTemplate = MessageTemplate.and(
             MessageTemplate.MatchProtocol(protocol), 
@@ -43,6 +40,7 @@ public class ReceivePingBv extends OneShotBehaviour{
         if (msg != null) {
             System.out.println(this.myAgent.getLocalName() + " : received " + protocol + " from " + msg.getSender().getLocalName());
             if (!senders.contains(msg.getSender().getLocalName()))
+                System.out.println(this.myAgent.getLocalName() + " : new sender " + msg.getSender().getLocalName());
                 senders.add(msg.getSender().getLocalName());
             exitValue = 1;
         }

@@ -1,5 +1,7 @@
 package eu.su.mas.dedaleEtu.perso.behaviours.ShareMap;
 
+import java.util.List;
+
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation;
@@ -14,16 +16,16 @@ public class ReceiveMapBv extends OneShotBehaviour{
   private static final long serialVersionUID = 1L;
 
   private MapRepresentation myMap;
+  private List<String> senders;
   private long waitingTime = 100;
+  private int exitValue;
 
-  public ReceiveMapBv(Agent a, MapRepresentation myMap) {
+  public ReceiveMapBv(Agent a, long waitingTime, MapRepresentation myMap, List<String> senders) {
     super(a);
-    this.myMap = myMap;
-  }
-
-  public ReceiveMapBv(Agent a, long waitingTime, MapRepresentation myMap){
-    this(a, myMap);
     this.waitingTime = waitingTime;
+    this.myMap = myMap;
+    this.senders = senders;
+    this.exitValue = 0;
   }
 
   @Override
@@ -34,15 +36,28 @@ public class ReceiveMapBv extends OneShotBehaviour{
       this.myAgent.doWait(this.waitingTime);
     ACLMessage msg = this.myAgent.receive(msgTemplate);
     if (msg != null) {
-        SerializableSimpleGraph<String,MapAttribute> sgreceived = null;
-        try{
-            sgreceived = (SerializableSimpleGraph<String,MapAttribute>) msg.getContentObject();
-        }catch(UnreadableException e){
-            e.printStackTrace();
-        }
-        this.myMap.mergeMap(sgreceived);
-        System.out.println(this.myAgent.getLocalName() + " : received map from " + msg.getSender().getLocalName());
+      SerializableSimpleGraph<String,MapAttribute> sgreceived = null;
+      try{
+          sgreceived = (SerializableSimpleGraph<String,MapAttribute>) msg.getContentObject();
+      }catch(UnreadableException e){
+          e.printStackTrace();
+      }
+      this.myMap.mergeMap(sgreceived);
+      System.out.println(this.myAgent.getLocalName() + " : received map from " + msg.getSender().getLocalName());
+      if (!senders.contains(msg.getSender().getLocalName()))
+        System.out.println(this.myAgent.getLocalName() + " : new sender " + msg.getSender().getLocalName());
+        senders.add(msg.getSender().getLocalName());
+        exitValue = 1;
     }
+    else{
+      System.out.println(this.myAgent.getLocalName() + " : no map received");
+      exitValue = 0;
+    }
+  }
+
+  @Override
+    public int onEnd() {
+    return exitValue;
   }
 
 }
