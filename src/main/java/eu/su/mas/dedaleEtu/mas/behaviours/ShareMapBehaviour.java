@@ -18,20 +18,13 @@ import jade.lang.acl.ACLMessage;
  * The agent periodically share its map.
  * It blindly tries to send all its graph to its friend(s)  	
  * If it was written properly, this sharing action would NOT be in a ticker behaviour and only a subgraph would be shared.
-
- * @author hc
  *
  */
 public class ShareMapBehaviour extends TickerBehaviour{
 	
 	private MapRepresentation myMap;
 	private List<String> receivers;
-
-	/**
-	 * The agent periodically share its map.
-	 * It blindly tries to send all its graph to its friend(s)  	
-	 * If it was written properly, this sharing action would NOT be in a ticker behaviour and only a subgraph would be shared.
-
+	/*
 	 * @param a the agent
 	 * @param period the periodicity of the behaviour (in ms)
 	 * @param mymap (the map to share)
@@ -43,15 +36,10 @@ public class ShareMapBehaviour extends TickerBehaviour{
 		this.receivers=receivers;	
 	}
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -568863390879327961L;
 
 	@Override
 	protected void onTick() {
-		//4) At each time step, the agent blindly send all its graph to its surrounding to illustrate how to share its knowledge (the topology currently) with the the others agents. 	
-		// If it was written properly, this sharing action should be in a dedicated behaviour set, the receivers be automatically computed, and only a subgraph would be shared.
 		
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 		msg.setProtocol("SHARE-TOPO");
