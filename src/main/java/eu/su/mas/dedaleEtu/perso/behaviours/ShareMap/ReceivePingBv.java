@@ -20,7 +20,6 @@ public class ReceivePingBv extends OneShotBehaviour{
         super(a);
         this.protocol = protocol;
         this.senders = senders;
-        exitValue = 0;
     }
 
     public ReceivePingBv(Agent a, long waitingTime, String protocol, List<String> senders){
@@ -30,7 +29,7 @@ public class ReceivePingBv extends OneShotBehaviour{
 
     @Override
     public void action() {
-        System.out.println(this.myAgent.getLocalName() + " : waiting for " + protocol);
+        exitValue = 0;
 
         MessageTemplate msgTemplate = MessageTemplate.and(
             MessageTemplate.MatchProtocol(protocol), 
@@ -39,9 +38,9 @@ public class ReceivePingBv extends OneShotBehaviour{
         ACLMessage msg = this.myAgent.receive(msgTemplate);
         if (msg != null) {
             System.out.println(this.myAgent.getLocalName() + " : received " + protocol + " from " + msg.getSender().getLocalName());
-            if (!senders.contains(msg.getSender().getLocalName()))
-                System.out.println(this.myAgent.getLocalName() + " : new sender " + msg.getSender().getLocalName());
+            if (!senders.contains(msg.getSender().getLocalName())){
                 senders.add(msg.getSender().getLocalName());
+            }
             exitValue = 1;
         }
     }

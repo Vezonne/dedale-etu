@@ -155,11 +155,13 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public List<String> getShortestPathWithoutNodes(String idFrom, String idTo, List<String> nodeList){
+		if(nodeList.contains(idTo)){
+			return getSecondClosestOpenNode(idFrom);
+		}
 		Graph gCopy = new SingleGraph("My new world vision");
 		SerializableSimpleGraph<String,MapAttribute> sg = this.getSerializableGraph();
 		for (SerializableNode<String, MapAttribute> n: sg.getAllNodes()){
 			if (!nodeList.contains(n.getNodeId())){
-				gCopy.addNode(n.getNodeId());
 				Node newNode = gCopy.addNode(n.getNodeId());
 				newNode.setAttribute("ui.label", newNode.getId());
 				newNode.setAttribute("ui.class", n.getNodeContent().toString());
@@ -207,6 +209,21 @@ public class MapRepresentation implements Serializable {
 		return getShortestPath(myPosition,closest.get().getLeft());
 	}
 
+	public List<String> getSecondClosestOpenNode(String myPosition){
+		List<String> opennodes=getOpenNodes();
+
+		//2) select the closest one
+		List<Couple<String,Integer>> lc=
+				opennodes.stream()
+						.map(on -> (getShortestPath(myPosition,on)!=null)? new Couple<String, Integer>(on,getShortestPath(myPosition,on).size()): new Couple<String, Integer>(on,Integer.MAX_VALUE))//some nodes my be unreachable if the agents do not share at least one common node.
+						.collect(Collectors.toList());
+
+		List<Couple<String,Integer>> sortedOpen=lc.stream().sorted(Comparator.comparing(Couple::getRight)).collect(Collectors.toList());
+		//3) Compute shorterPath
+		if(sortedOpen.size()>1)
+			return getShortestPath(myPosition, sortedOpen.get(1).getLeft());
+		return null;
+	}
 
 
 	public List<String> getOpenNodes(){

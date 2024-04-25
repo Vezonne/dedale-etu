@@ -11,7 +11,6 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
-import eu.su.mas.dedaleEtu.perso.behaviours.ShareMap.ShareMapBv;
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
 

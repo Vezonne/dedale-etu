@@ -14,12 +14,13 @@ public class AgentsLoc implements Serializable{
     private List<Couple<String,Location>> agentsLoc;
     private int size;
 
-    public AgentsLoc(int size, List<String> agents){
-        this.size = size;
-        this.agentsLoc = new ArrayList<Couple<String,Location>>(size);
-        for (String agent : agents){
-            this.agentsLoc.add(new Couple<String,Location>(agent, null));
-        }
+    public AgentsLoc(List<String> agents){
+        // this.size = agents.size();
+        this.size = 0;
+        this.agentsLoc = new ArrayList<Couple<String,Location>>();
+        // for (String agent : agents){
+        //     this.agentsLoc.add(new Couple<String,Location>(agent, null));
+        // }
     }
 
     public int size(){
@@ -31,8 +32,13 @@ public class AgentsLoc implements Serializable{
     }
 
     public void updateAgentLocation(String agent, Location loc){
-        this.agentsLoc.remove(this.agentsLoc.stream().filter(c -> c.getLeft().equals(agent)).findFirst().get());
+        Couple<String,Location> coupleToUpdate = this.agentsLoc.stream().filter(c -> c.getLeft().equals(agent)).findFirst().get();
+        if(coupleToUpdate != null){
+            this.agentsLoc.remove(coupleToUpdate);
+            size --;
+        }
         this.agentsLoc.add(new Couple<String,Location>(agent, loc));
+        size ++;
     }
 
     public List<String> getCloseAgents(){

@@ -25,11 +25,12 @@ public class ReceiveMapBv extends OneShotBehaviour{
     this.waitingTime = waitingTime;
     this.myMap = myMap;
     this.senders = senders;
-    this.exitValue = 0;
   }
 
   @Override
-    public void action() {
+  public void action() {
+    exitValue = 0;
+
     MessageTemplate msgTemplate = MessageTemplate.and(
         MessageTemplate.MatchProtocol("SHARE-MAP"), 
         MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -44,14 +45,10 @@ public class ReceiveMapBv extends OneShotBehaviour{
       }
       this.myMap.mergeMap(sgreceived);
       System.out.println(this.myAgent.getLocalName() + " : received map from " + msg.getSender().getLocalName());
-      if (!senders.contains(msg.getSender().getLocalName()))
-        System.out.println(this.myAgent.getLocalName() + " : new sender " + msg.getSender().getLocalName());
+      if (!senders.contains(msg.getSender().getLocalName())){
         senders.add(msg.getSender().getLocalName());
-        exitValue = 1;
-    }
-    else{
-      System.out.println(this.myAgent.getLocalName() + " : no map received");
-      exitValue = 0;
+      }
+      exitValue = 1;
     }
   }
 

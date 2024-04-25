@@ -44,8 +44,6 @@ public class SendMapBv extends OneShotBehaviour{
 
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
         System.out.println(this.myAgent.getLocalName() + " : sent map to " + receivers);
-        System.out.println(this.myAgent.getLocalName() + " : clear receivers");
-        receivers.clear();
     }
     
 }

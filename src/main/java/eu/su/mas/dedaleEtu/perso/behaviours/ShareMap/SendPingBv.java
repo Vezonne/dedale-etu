@@ -32,8 +32,8 @@ public class SendPingBv extends OneShotBehaviour{
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
         System.out.println(this.myAgent.getLocalName() + " : sent " + protocol + " to " + receivers);
         if (protocol.equals("PONG")){
-            System.out.println(this.myAgent.getLocalName() + " : clear receivers");
-            receivers.clear();
+            // System.out.println(this.myAgent.getLocalName() + " : clear receivers");
+            // receivers.clear();
         }
     }
     

@@ -17,7 +17,6 @@ import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import eu.su.mas.dedaleEtu.perso.behaviours.ShareMap.ShareMapBv;
 
 public class HuntBv extends SimpleBehaviour {
 
@@ -35,10 +34,6 @@ public class HuntBv extends SimpleBehaviour {
 
     @Override
     public void action() {
-        if(this.myMap==null) {
-			this.myMap= new MapRepresentation();
-			this.myAgent.addBehaviour(new ShareMapBv(this.myAgent, 100, this.myMap, list_agentNames));
-		}
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 

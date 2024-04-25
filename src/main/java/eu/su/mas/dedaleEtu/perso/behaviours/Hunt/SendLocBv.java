@@ -7,6 +7,7 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 
 
@@ -19,7 +20,7 @@ public class SendLocBv extends OneShotBehaviour{
         super(a);
         this.receivers = receivers;
     }
-
+    
     @Override
     public void action() {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -28,12 +29,7 @@ public class SendLocBv extends OneShotBehaviour{
         for(String agent : receivers){
             msg.addReceiver(new AID(agent, AID.ISLOCALNAME));
         }
-
-        try {
-            msg.setContentObject(((AbstractDedaleAgent)this.myAgent).getCurrentPosition());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        msg.setContent(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().toString());
 
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
         System.out.println(this.myAgent.getLocalName() + " : sent loc to " + receivers);
