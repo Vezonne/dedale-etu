@@ -23,19 +23,20 @@ public class InitFSMBv extends OneShotBehaviour{
 
     private static final long serialVersionUID = 1L;
 
-	private static final int DELAY = 150;
-	private static final int WAITINGTIME = 150;
+	private static final int DELAY = 500;
+	private static final int WAITINGTIME = 250;
+    private static final int PERIOD = 1000;
 
     private MapRepresentation myMap;
     private AgentsLoc agentsLoc;
-    private List<String> list_agentNames;
-    private List<String> list_senderNames = new ArrayList<String>();
+    private List<String> agentNames;
+    private List<String> listCom = new ArrayList<String>();
 
     public InitFSMBv(Agent a, MapRepresentation myMap, AgentsLoc agentsLoc, List<String> list_agentsNames) {
         super(a);
         this.myMap = myMap;
         this.agentsLoc = agentsLoc;
-        this.list_agentNames = list_agentsNames;
+        this.agentNames = list_agentsNames;
     }
 
     @Override
@@ -45,17 +46,48 @@ public class InitFSMBv extends OneShotBehaviour{
         }
 
         if (this.agentsLoc == null){
-            this.agentsLoc = new AgentsLoc(list_agentNames, 5);
+            this.agentsLoc = new AgentsLoc(agentNames, 5);
         }
 
         //---------- FSM ----------//
 
-        System.out.println(this.myAgent.getLocalName() + " : " + list_agentNames);
+        System.out.println(this.myAgent.getLocalName() + " : " + agentNames);
 
         FSMBehaviour bigFSM = new FSMBehaviour(this.myAgent);
 
         // STATES
         String ExploCount = "ExploCount";
+
+        String Patrol = "Patrol";
+        String Hunt = "Hunt";
+        String Hunt2 = "Hunt2";
+
+        String EndExplo = "EndExplo";
+
+        // Exploration
+        bigFSM.registerFirstState(new ExploCountBv(this.myAgent, this.myMap, this.agentsLoc, DELAY), ExploCount);
+
+        bigFSM.registerState(new PatrolBv(this.myAgent, this.myMap, listCom, DELAY), Patrol);
+        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc), Hunt);
+        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc), Hunt2);
+        // End
+        // bigFSM.registerLastState(new EmptyBv(this.myAgent), EndExplo);
+
+        // TRANSITIONS
+        // bigFSM.registerTransition(ExploCount, ExploCount, 0);
+        // bigFSM.registerTransition(ExploCount, ReceivePing, 1);
+        bigFSM.registerTransition(ExploCount, Hunt2, 0);
+        bigFSM.registerTransition(Hunt2, ExploCount, 0);
+        bigFSM.registerTransition(Hunt2, Hunt2, 1);
+
+        bigFSM.registerTransition(ExploCount, Patrol, 2);
+        bigFSM.registerDefaultTransition(Patrol, Hunt);
+        bigFSM.registerTransition(Hunt, Patrol, 0);
+        bigFSM.registerTransition(Hunt, Hunt, 1);
+
+        this.myAgent.addBehaviour(bigFSM);
+
+        FSMBehaviour shareMap = new FSMBehaviour(this.myAgent);
 
         String ReceivePing = "ReceivePing";
         String SendPing = "SendPing";
@@ -69,72 +101,45 @@ public class InitFSMBv extends OneShotBehaviour{
         String ReceiveResponse = "ReceiveResponse";
         String SendResponse = "SendResponse";
 
-        String Patrol = "Patrol";
-        String Hunt = "Hunt";
-        String Hunt2 = "Hunt2";
+        shareMap.registerFirstState(new ReceivePingBv(this.myAgent, this.listCom, "PING", WAITINGTIME, PERIOD), ReceivePing);
+        shareMap.registerState(new SendPingBv(this.myAgent, this.agentNames, "PING"), SendPing);
 
-        String EndExplo = "EndExplo";
+        shareMap.registerState(new ReceivePingBv(this.myAgent, this.listCom, "PONG", WAITINGTIME, DELAY), ReceivePong);
+        shareMap.registerState(new SendPingBv(this.myAgent, this.listCom, "PONG"), SendPong);
 
-        // Exploration
-        bigFSM.registerFirstState(new ExploCountBv(this.myAgent, this.myMap, this.agentsLoc, list_senderNames, DELAY), ExploCount);
-        // Send Map
-        bigFSM.registerState(new ReceivePingBv(this.myAgent, WAITINGTIME, "PING", this.list_senderNames), ReceivePing);
-        bigFSM.registerState(new SendPingBv(this.myAgent, this.list_agentNames, "PING"), SendPing);
+        shareMap.registerState(new ReceiveMapBv(this.myAgent, this.myMap, this.listCom, WAITINGTIME), ReceiveMap);
+        shareMap.registerState(new SendMapBv(this.myAgent, this.myMap, this.listCom), SendMap);
 
-        bigFSM.registerState(new ReceivePingBv(this.myAgent, WAITINGTIME, "PONG", this.list_senderNames), ReceivePong);
-        bigFSM.registerState(new SendPingBv(this.myAgent, this.list_senderNames, "PONG"), SendPong);
+        shareMap.registerState(new ReceiveMapBv(this.myAgent, this.myMap, this.listCom, WAITINGTIME), ReceiveResponse);
+        shareMap.registerState(new SendMapBv(this.myAgent, this.myMap, this.listCom), SendResponse);
 
-        bigFSM.registerState(new ReceiveMapBv(this.myAgent, WAITINGTIME, this.myMap, this.list_senderNames), ReceiveMap);
-        bigFSM.registerState(new SendMapBv(this.myAgent, this.myMap, this.list_senderNames), SendMap);
-
-        bigFSM.registerState(new ReceiveMapBv(this.myAgent, WAITINGTIME, this.myMap, this.list_senderNames), ReceiveResponse);
-        bigFSM.registerState(new SendMapBv(this.myAgent, this.myMap, this.list_senderNames), SendResponse);
-
-        bigFSM.registerState(new PatrolBv(this.myAgent, this.myMap, list_senderNames, DELAY), Patrol);
-        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, list_agentNames), Hunt);
-        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, list_senderNames), Hunt2);
-        // End
-        bigFSM.registerLastState(new EmptyBv(this.myAgent), EndExplo);
-
-        // TRANSITIONS
-        // bigFSM.registerTransition(ExploCount, ExploCount, 0);
-        bigFSM.registerTransition(ExploCount, ReceivePing, 1);
-        bigFSM.registerTransition(ExploCount, Hunt2, 0);
-        bigFSM.registerTransition(Hunt2, ExploCount, 0);
-        bigFSM.registerTransition(Hunt2, Hunt2, 1);
-
-        bigFSM.registerTransition(ReceivePing, SendPong, 1);
-        bigFSM.registerDefaultTransition(SendPong, ReceiveMap);
-        bigFSM.registerTransition(ReceiveMap, SendResponse, 1);
-        bigFSM.registerTransition(ReceiveMap, ExploCount, 0);
-        bigFSM.registerDefaultTransition(SendResponse, ExploCount);
+        shareMap.registerTransition(ReceivePing, SendPong, 1);
+        shareMap.registerDefaultTransition(SendPong, ReceiveMap);
+        shareMap.registerTransition(ReceiveMap, SendResponse, 1);
+        shareMap.registerTransition(ReceiveMap, ReceivePing, 0);
+        shareMap.registerDefaultTransition(SendResponse, ReceivePing);
         
-        bigFSM.registerTransition(ReceivePing, SendPing, 0);
-        bigFSM.registerDefaultTransition(SendPing, ReceivePong);
-        bigFSM.registerTransition(ReceivePong, ExploCount, 0);
-        bigFSM.registerTransition(ReceivePong, SendMap, 1);
-        bigFSM.registerDefaultTransition(SendMap, ReceiveResponse);
-        bigFSM.registerDefaultTransition(ReceiveResponse, ExploCount);
+        shareMap.registerTransition(ReceivePing, SendPing, 0);
+        shareMap.registerDefaultTransition(SendPing, ReceivePong);
+        shareMap.registerTransition(ReceivePong, ReceivePing, 0);
+        shareMap.registerTransition(ReceivePong, SendMap, 1);
+        shareMap.registerDefaultTransition(SendMap, ReceiveResponse);
+        shareMap.registerDefaultTransition(ReceiveResponse, ReceivePing);
 
-        bigFSM.registerTransition(ExploCount, Patrol, 2);
-        bigFSM.registerDefaultTransition(Patrol, Hunt);
-        bigFSM.registerTransition(Hunt, Patrol, 0);
-        bigFSM.registerTransition(Hunt, Hunt, 1);
+        this.myAgent.addBehaviour(shareMap);
 
-        this.myAgent.addBehaviour(bigFSM);
-
-        FSMBehaviour sharLoc = new FSMBehaviour(this.myAgent);
+        FSMBehaviour shareLoc = new FSMBehaviour(this.myAgent);
 
         String sendLoc = "sendLoc";
         String receiveLoc = "receiveLoc";
 
-        sharLoc.registerFirstState(new ReceiveLocBv(this.myAgent, this.myMap, agentsLoc, DELAY), receiveLoc);
-        sharLoc.registerState(new SendLocBv(this.myAgent, list_agentNames), sendLoc);
+        shareLoc.registerFirstState(new ReceiveLocBv(this.myAgent, this.myMap, agentsLoc, DELAY), receiveLoc);
+        shareLoc.registerState(new SendLocBv(this.myAgent, agentNames), sendLoc);
 
-        sharLoc.registerDefaultTransition(receiveLoc, sendLoc);
-        sharLoc.registerDefaultTransition(sendLoc, receiveLoc);
+        shareLoc.registerDefaultTransition(receiveLoc, sendLoc);
+        shareLoc.registerDefaultTransition(sendLoc, receiveLoc);
 
-        this.myAgent.addBehaviour(sharLoc);
+        this.myAgent.addBehaviour(shareLoc);
 
         // try {
         // 	System.out.println("Press enter in the console to allow the agent "+this.myAgent.getLocalName() +" to execute its next move");

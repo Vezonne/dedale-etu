@@ -12,35 +12,41 @@ public class ReceivePingBv extends OneShotBehaviour{
     private static final long serialVersionUID = 1L;
 
     private List<String> senders;
+    private String protocol;
+    private long waitingTime;
+    private long period;
     private int exitValue;
-    private String protocol = "PING";
-    private long waitingTime = 0;
 
-    public ReceivePingBv(Agent a, String protocol, List<String> senders){
+    public ReceivePingBv(Agent a, List<String> senders, String protocol, long waitingTime, long period){
         super(a);
-        this.protocol = protocol;
         this.senders = senders;
-    }
-
-    public ReceivePingBv(Agent a, long waitingTime, String protocol, List<String> senders){
-        this(a, protocol, senders);
+        this.protocol = protocol;
         this.waitingTime = waitingTime;
+        this.period = period;
     }
 
     @Override
     public void action() {
+        if(this.protocol.equals("PING")){
+            senders.clear();
+            this.block(period);
+        }
         exitValue = 0;
 
         MessageTemplate msgTemplate = MessageTemplate.and(
             MessageTemplate.MatchProtocol(protocol), 
             MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+
         this.myAgent.doWait(waitingTime);
         ACLMessage msg = this.myAgent.receive(msgTemplate);
+
         while (msg != null) {
             System.out.println(this.myAgent.getLocalName() + " : received " + protocol + " from " + msg.getSender().getLocalName());
+
             if (!senders.contains(msg.getSender().getLocalName())){
                 senders.add(msg.getSender().getLocalName());
             }
+
             msg = this.myAgent.receive(msgTemplate);
             exitValue = 1;
         }

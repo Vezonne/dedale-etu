@@ -22,7 +22,6 @@ public class ExploCountBv extends OneShotBehaviour{
 	
     private MapRepresentation myMap;
 	private AgentsLoc agentsLoc;
-	private List<String> list_com;
 	private String targetNode;
 	private String previousMove;
 	private String previousPos;
@@ -36,11 +35,10 @@ public class ExploCountBv extends OneShotBehaviour{
 	private int limit;
 
 
-    public ExploCountBv(final Agent myAgent, MapRepresentation myMap, AgentsLoc agentsLoc, List<String> list_com, int waitingTime) {
+    public ExploCountBv(final Agent myAgent, MapRepresentation myMap, AgentsLoc agentsLoc, int waitingTime) {
         super(myAgent);
         this.myMap = myMap;
 		this.agentsLoc = agentsLoc;
-		this.list_com = list_com;
 		this.waitingTime = waitingTime;
 
 		this.targetNode = null;
@@ -55,7 +53,6 @@ public class ExploCountBv extends OneShotBehaviour{
     @Override
     public void action() {
 		exitValue = 0;
-		list_com.clear();
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
@@ -65,7 +62,7 @@ public class ExploCountBv extends OneShotBehaviour{
 			System.out.println(this.myAgent.getLocalName() + " : " + nodeCount + " nodes explored");
 			this.nodeCount = 0;
 			this.limit = r.nextInt(4) + 3;
-			exitValue = 1;
+			exitValue = 0;
 		}
 
 		/**
@@ -124,15 +121,15 @@ public class ExploCountBv extends OneShotBehaviour{
 					path = this.myMap.getShortestPath(myPosition.getLocationId(), targetNode);
 				}
 		
-				if(previousMove != null && !myPosition.getLocationId().equals(previousMove)){
+				if(this.previousMove != null && !myPosition.getLocationId().equals(this.previousMove)){
 					System.out.println(this.myAgent.getLocalName() + " : I'm stuck, recalculating path");
 	
-					List<String> stuckNodes = new ArrayList<String>();
-					stuckNodes.add(previousMove);
+					List<String> occupiedNodes = new ArrayList<String>();
+					occupiedNodes.add(this.previousMove);
 					for (String agent: this.agentsLoc.getCloseAgents()){
-						stuckNodes.add(this.agentsLoc.getAgentLocation(agent).getLocationId());
+						occupiedNodes.add(this.agentsLoc.getAgentLocation(agent).getLocationId());
 					}
-					path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), targetNode, stuckNodes);
+					path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), targetNode, occupiedNodes);
 					
 					if (path == null) {
 						System.out.println(this.myAgent.getLocalName() + " : No path found, I'm going back");
