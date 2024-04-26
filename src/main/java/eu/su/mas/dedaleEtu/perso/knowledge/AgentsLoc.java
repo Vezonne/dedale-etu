@@ -2,6 +2,7 @@ package eu.su.mas.dedaleEtu.perso.knowledge;
 
 import java.io.Serializable;
 import java.util.List;
+
 import java.util.ArrayList;
 
 import dataStructures.tuple.Couple;
@@ -13,14 +14,12 @@ public class AgentsLoc implements Serializable{
     
     private List<Couple<String,Location>> agentsLoc;
     private int size;
+    private int range;
 
-    public AgentsLoc(List<String> agents){
-        // this.size = agents.size();
+    public AgentsLoc(List<String> agents, int range){
         this.size = 0;
         this.agentsLoc = new ArrayList<Couple<String,Location>>();
-        // for (String agent : agents){
-        //     this.agentsLoc.add(new Couple<String,Location>(agent, null));
-        // }
+        this.range = range;
     }
 
     public int size(){
@@ -32,8 +31,8 @@ public class AgentsLoc implements Serializable{
     }
 
     public void updateAgentLocation(String agent, Location loc){
-        Couple<String,Location> coupleToUpdate = this.agentsLoc.stream().filter(c -> c.getLeft().equals(agent)).findFirst().get();
-        if(coupleToUpdate != null){
+        if (this.getCloseAgents().contains(agent)){
+            Couple<String,Location> coupleToUpdate = this.agentsLoc.stream().filter(c -> c.getLeft().equals(agent)).findFirst().get();
             this.agentsLoc.remove(coupleToUpdate);
             size --;
         }
@@ -49,5 +48,33 @@ public class AgentsLoc implements Serializable{
             }
         }
         return closeAgents;
+    }
+    
+    public void checkAgentsInRange(Location myLoc, MapRepresentation myMap){
+        List<String> agentsToRemove = new ArrayList<String>();
+        for (Couple<String,Location> agent : this.agentsLoc){
+            if (agent.getRight() != null && myMap.getNodes().contains(agent.getRight().getLocationId())){
+                List<String> path = myMap.getShortestPath(myLoc.getLocationId(), agent.getRight().getLocationId());
+                if (path != null && path.size() > this.range){
+                    agentsToRemove.add(agent.getLeft());
+                }
+            }
+        }
+        for (String agent : agentsToRemove){
+            this.agentsLoc.removeIf(c -> c.getLeft().equals(agent));
+            size --;
+        }
+    }
+
+    public String toString(){
+        if (size == 0){
+            return "[]";
+        }
+
+        String str = "[";
+        for (Couple<String,Location> agent : this.agentsLoc){
+            str += agent.getLeft() + ":" + agent.getRight() + ", ";
+        }
+        return str + "\b\b]";
     }
 }

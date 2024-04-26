@@ -7,7 +7,7 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 import eu.su.mas.dedaleEtu.perso.knowledge.AgentsLoc;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.perso.behaviours.InitPingBv;
+import eu.su.mas.dedaleEtu.perso.behaviours.InitFSMBv;
 import jade.core.behaviours.Behaviour;
 
 public class ExploPingA extends AbstractDedaleAgent{
@@ -36,7 +36,7 @@ public class ExploPingA extends AbstractDedaleAgent{
         }
 
         List<Behaviour> lb = new ArrayList<Behaviour>();
-        lb.add(new InitPingBv(this, this.myMap, this.myLocs, list_agentNames));
+        lb.add(new InitFSMBv(this, this.myMap, this.myLocs, list_agentNames));
 
         addBehaviour(new startMyBehaviours(this, lb));
 

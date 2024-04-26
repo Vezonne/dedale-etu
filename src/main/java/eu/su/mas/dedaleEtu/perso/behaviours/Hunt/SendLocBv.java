@@ -1,13 +1,11 @@
 package eu.su.mas.dedaleEtu.perso.behaviours.Hunt;
 
-import java.io.IOException;
 import java.util.List;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 
 
@@ -32,6 +30,6 @@ public class SendLocBv extends OneShotBehaviour{
         msg.setContent(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().toString());
 
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-        System.out.println(this.myAgent.getLocalName() + " : sent loc to " + receivers);
+        // System.out.println(this.myAgent.getLocalName() + " : sent loc to " + receivers);
     }
 }

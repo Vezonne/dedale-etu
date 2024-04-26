@@ -36,11 +36,12 @@ public class ReceivePingBv extends OneShotBehaviour{
             MessageTemplate.MatchPerformative(ACLMessage.INFORM));
         this.myAgent.doWait(waitingTime);
         ACLMessage msg = this.myAgent.receive(msgTemplate);
-        if (msg != null) {
+        while (msg != null) {
             System.out.println(this.myAgent.getLocalName() + " : received " + protocol + " from " + msg.getSender().getLocalName());
             if (!senders.contains(msg.getSender().getLocalName())){
                 senders.add(msg.getSender().getLocalName());
             }
+            msg = this.myAgent.receive(msgTemplate);
             exitValue = 1;
         }
     }

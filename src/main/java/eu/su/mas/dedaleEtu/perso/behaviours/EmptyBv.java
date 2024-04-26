@@ -13,7 +13,6 @@ public class EmptyBv extends OneShotBehaviour{
 
     @Override
     public void action() {
-        
     }
     
 }

@@ -10,32 +10,46 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.perso.knowledge.AgentsLoc;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation.MapAttribute;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
-import java_cup.production_part;
 
 public class ExploCountBv extends OneShotBehaviour{
 
     private static final long serialVersionUID = 1L;
+	
+    private MapRepresentation myMap;
+	private AgentsLoc agentsLoc;
+	private List<String> list_com;
+	private String targetNode;
+	private String previousMove;
+	private String previousPos;
+	private String checkpoint;
+	private List<String> path;
+	private Random r;
 
-	private boolean hasMoved = false;
+	private int waitingTime;
 	private int nodeCount;
     private int exitValue;
-    private MapRepresentation myMap;
-	private Random r;
 	private int limit;
-	private List<String> list_com;
 
-    public ExploCountBv(final Agent myAgent, MapRepresentation myMap, int nodeCount, List<String> list_com) {
+
+    public ExploCountBv(final Agent myAgent, MapRepresentation myMap, AgentsLoc agentsLoc, List<String> list_com, int waitingTime) {
         super(myAgent);
         this.myMap = myMap;
-        this.nodeCount = nodeCount;
-		this.r = new Random();
+		this.agentsLoc = agentsLoc;
 		this.list_com = list_com;
-		System.out.println(myAgent.getLocalName() + " is counting nodes");	
+		this.waitingTime = waitingTime;
 
+		this.targetNode = null;
+		this.previousMove = null;
+		this.previousPos = null;
+		this.checkpoint = null;
+		this.r = new Random();
+        this.nodeCount = 0;
+		this.limit = r.nextInt(4) + 3;
     }
 
     @Override
@@ -45,24 +59,43 @@ public class ExploCountBv extends OneShotBehaviour{
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
+		this.nodeCount++;
+
+		if (this.nodeCount > limit){
+			System.out.println(this.myAgent.getLocalName() + " : " + nodeCount + " nodes explored");
+			this.nodeCount = 0;
+			this.limit = r.nextInt(4) + 3;
+			exitValue = 1;
+		}
+
+		/**
+		 * Just added here to let you see what the agent is doing, otherwise he will be too quick
+		 */
+		try {
+			this.myAgent.doWait(waitingTime);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
         if (myPosition!=null){
+
+			String nextNodeId=null;
+
+			if (checkpoint == null) {
+				checkpoint = myPosition.getLocationId();
+			}
+			
+			if (this.previousPos != null && !this.previousPos.equals(myPosition.getLocationId())) {
+				this.checkpoint = this.previousPos;
+			}
+
 			//List of observable from the agent's current position
 			List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 
-			/**
-			 * Just added here to let you see what the agent is doing, otherwise he will be too quick
-			 */
-			try {
-				this.myAgent.doWait(500);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 			//1) remove the current node from openlist and add it to closedNodes.
 			this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
-			String nextNodeId=null;
-			List<String> path = null;
 			Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
 			while(iter.hasNext()){
 				Location accessibleNode=iter.next().getLeft();
@@ -70,52 +103,61 @@ public class ExploCountBv extends OneShotBehaviour{
 				//the node may exist, but not necessarily the edge
 				if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 					this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
-					if (nextNodeId==null && isNewNode) nextNodeId=accessibleNode.getLocationId();
-					path = new ArrayList<String>();
-					path.add(nextNodeId);
+					if (nextNodeId==null && isNewNode){
+						nextNodeId=accessibleNode.getLocationId();
+					}
 				}
 			}
 
             //3) while openNodes is not empty, continues.
 			if (!this.myMap.hasOpenNode()){
 				//Explo finished
+				System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done");
                 exitValue = 2;
-				System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
-			}else{
+			}
+
+			else{
+				
+				if (this.targetNode == null || this.targetNode.equals(myPosition.getLocationId())) {
+					path = this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId());
+					targetNode = path.get(path.size()-1);
+					path = this.myMap.getShortestPath(myPosition.getLocationId(), targetNode);
+				}
+		
+				if(previousMove != null && !myPosition.getLocationId().equals(previousMove)){
+					System.out.println(this.myAgent.getLocalName() + " : I'm stuck, recalculating path");
+	
+					List<String> stuckNodes = new ArrayList<String>();
+					stuckNodes.add(previousMove);
+					for (String agent: this.agentsLoc.getCloseAgents()){
+						stuckNodes.add(this.agentsLoc.getAgentLocation(agent).getLocationId());
+					}
+					path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), targetNode, stuckNodes);
+					
+					if (path == null) {
+						System.out.println(this.myAgent.getLocalName() + " : No path found, I'm going back");
+						// path = this.myMap.getShortestPath(myPosition.getLocationId(), checkpoint);
+						List<String> openNodes = this.myMap.getOpenNodes();
+						this.targetNode = openNodes.get(r.nextInt(openNodes.size()));
+						path = this.myMap.getShortestPath(myPosition.getLocationId(), this.targetNode);
+					}
+					nextNodeId = path.get(0);
+				}
+
 				//4) select next move.
 				//4.1 If there exist one open node directly reachable, go for it,
 				//	 otherwise choose one from the openNode list, compute the shortestPath and go for it
 				if (nextNodeId==null){
-					//no directly accessible openNode
-					//chose one, compute the path and take the first step.
-					path = this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId());
-					nextNodeId=path.get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
-					//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
+					path = this.myMap.getShortestPath(myPosition.getLocationId(), targetNode);
+					nextNodeId=path.get(0);
 				}
 
-				while(!((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNodeId))){
-					System.out.println(this.myAgent.getLocalName() + " : Try to move to "+nextNodeId+ " and I'm stuck");
-					List<String> nodes = new ArrayList<String>();
-					nodes.add(nextNodeId);
-					path = this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId());
-					path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), path.get(path.size()-1), nodes);
-					if (path == null) {
-						System.out.println(this.myAgent.getLocalName() + " : No path found, I'm stuck");
-						break;
-					}
-					nextNodeId = path.get(0);
-                }
-				this.nodeCount++;
+				
+				this.previousMove = nextNodeId;
+				this.previousPos = myPosition.getLocationId();
 
-				this.limit = r.nextInt(4) + 1;
-
-				if (this.nodeCount > limit){
-					System.out.println(this.myAgent.getLocalName() + " : " + nodeCount + " nodes explored");
-					this.nodeCount = 0;
-					exitValue = 1;
-				}
+				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNodeId));
 			}
-
 		}
     }
 

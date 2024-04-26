@@ -366,7 +366,8 @@ public class MapRepresentation implements Serializable {
 				.findAny()).isPresent();
 	}
 
-
-
+	public List<String> getNodes() {
+		return this.g.nodes().map(n -> n.getId()).collect(Collectors.toList());
+	}
 
 }
