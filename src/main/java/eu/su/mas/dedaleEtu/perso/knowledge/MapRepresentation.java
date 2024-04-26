@@ -156,7 +156,7 @@ public class MapRepresentation implements Serializable {
 
 	public List<String> getShortestPathWithoutNodes(String idFrom, String idTo, List<String> nodeList){
 		if(nodeList.contains(idTo)){
-			return getSecondClosestOpenNode(idFrom);
+			return null;
 		}
 		Graph gCopy = new SingleGraph("My new world vision");
 		SerializableSimpleGraph<String,MapAttribute> sg = this.getSerializableGraph();
@@ -173,6 +173,7 @@ public class MapRepresentation implements Serializable {
 			}
 		}
 
+		this.g.isStrict();
 		List<String> shortestPath=new ArrayList<String>();
 
 		Dijkstra dijkstra = new Dijkstra();//number of edge

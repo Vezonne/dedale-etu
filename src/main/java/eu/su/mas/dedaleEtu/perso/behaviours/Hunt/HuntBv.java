@@ -9,6 +9,7 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.perso.agents.ExploPingA;
 import eu.su.mas.dedaleEtu.perso.knowledge.AgentsLoc;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation.MapAttribute;
@@ -22,17 +23,31 @@ public class HuntBv extends OneShotBehaviour {
 
     private MapRepresentation myMap;
 	private AgentsLoc agentsLoc;
+	private long waitingTime;
+
+	private String previousPos;
+	private String previousMove;
 	private int exitValue;
 
-    public HuntBv(final Agent myAgent, MapRepresentation myMap, AgentsLoc agentsLoc) {
+    public HuntBv(final Agent myAgent, MapRepresentation myMap, AgentsLoc agentsLoc, long waitingTime) {
         super(myAgent);
         this.myMap = myMap;
         this.agentsLoc = agentsLoc;
+		this.waitingTime = waitingTime;
+
+		this.previousPos = null;
+		this.previousMove = null;
     }
 
     @Override
     public void action() {
 		exitValue = 0;
+
+		try {
+			this.myAgent.doWait(waitingTime);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
@@ -42,6 +57,7 @@ public class HuntBv extends OneShotBehaviour {
 			List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
 
             List<String> stenchLocations = new ArrayList<>();
+			List<String> clearLocations = new ArrayList<>();
 			Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
 
 			while(iter.hasNext()){
@@ -50,6 +66,9 @@ public class HuntBv extends OneShotBehaviour {
 				for(Couple<Observation, Integer> obs : node.getRight()){
 					if(obs.getLeft().getName().equals("Stench")){
 						stenchLocations.add(node.getLeft().getLocationId());
+					}
+					else{
+						clearLocations.add(node.getLeft().getLocationId());
 					}
 				}
 				Location accessibleNode=node.getLeft();
@@ -63,23 +82,42 @@ public class HuntBv extends OneShotBehaviour {
 			// Check if stench was detected
 			if(!stenchLocations.isEmpty()) {
 				// System.out.println(this.myAgent.getLocalName() + " : ÇA PUUUUUUE !!!!!!!!!!!!!!!!!");
+
 				List<String> occupiedNodes = new ArrayList<String>();
 
 				for (String agent : this.agentsLoc.getCloseAgents()){
 					occupiedNodes.add(this.agentsLoc.getAgentLocation(agent).getLocationId());
 				}
-				// Choose a random stench location
-				int randomIndex = (int)(Math.random() * stenchLocations.size());
-				String targetLocationId = stenchLocations.get(randomIndex);
-
-				while(occupiedNodes.contains(targetLocationId)){
-					randomIndex = (int)(Math.random() * stenchLocations.size());
-					targetLocationId = stenchLocations.get(randomIndex);
-				}
 				
-				// Move towards the target location
-				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(targetLocationId));
-				exitValue = 1;
+				String nextNodeId;
+				if (this.previousMove != null && !this.previousMove.equals(myPosition.getLocationId()) && !occupiedNodes.contains(previousMove)) {
+					((ExploPingA)this.myAgent).setGPos(previousMove);
+					nextNodeId = previousMove;
+					exitValue = 2;
+				}
+				else{
+
+					int randomIndex = (int)(Math.random() * stenchLocations.size());
+					nextNodeId = stenchLocations.get(randomIndex);
+					
+					if (occupiedNodes.containsAll(stenchLocations) && clearLocations.size()>0){
+						randomIndex = (int)(Math.random() * clearLocations.size());
+						nextNodeId = clearLocations.get(randomIndex);
+					}
+					else{
+						while(occupiedNodes.contains(nextNodeId)){
+							randomIndex = (int)(Math.random() * stenchLocations.size());
+							nextNodeId = stenchLocations.get(randomIndex);
+						}
+					}
+
+					previousMove = nextNodeId;
+					previousPos = myPosition.getLocationId();
+					// Move towards the target location
+					exitValue = 1;
+				}
+				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNodeId));
+
 			}
         }
 	}

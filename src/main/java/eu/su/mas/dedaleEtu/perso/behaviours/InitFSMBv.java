@@ -3,10 +3,14 @@ package eu.su.mas.dedaleEtu.perso.behaviours;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.su.mas.dedaleEtu.perso.agents.ExploPingA;
 import eu.su.mas.dedaleEtu.perso.behaviours.Explo.ExploCountBv;
 import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.HuntBv;
+import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.JoinBv;
 import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.PatrolBv;
+import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.ReceiveGPosBv;
 import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.ReceiveLocBv;
+import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.SendGPosBv;
 import eu.su.mas.dedaleEtu.perso.behaviours.Hunt.SendLocBv;
 import eu.su.mas.dedaleEtu.perso.behaviours.ShareMap.ReceiveMapBv;
 import eu.su.mas.dedaleEtu.perso.behaviours.ShareMap.ReceivePingBv;
@@ -23,19 +27,21 @@ public class InitFSMBv extends OneShotBehaviour{
 
     private static final long serialVersionUID = 1L;
 
-	private static final int DELAY = 500;
+	private static final int DELAY = 100;
 	private static final int WAITINGTIME = 250;
-    private static final int PERIOD = 1000;
+    private static final int PERIOD = 250;
 
     private MapRepresentation myMap;
     private AgentsLoc agentsLoc;
+    private String gPos;
     private List<String> agentNames;
     private List<String> listCom = new ArrayList<String>();
 
-    public InitFSMBv(Agent a, MapRepresentation myMap, AgentsLoc agentsLoc, List<String> list_agentsNames) {
+    public InitFSMBv(Agent a, MapRepresentation myMap, AgentsLoc agentsLoc, String gPos, List<String> list_agentsNames) {
         super(a);
         this.myMap = myMap;
         this.agentsLoc = agentsLoc;
+        this.gPos = gPos;
         this.agentNames = list_agentsNames;
     }
 
@@ -46,7 +52,7 @@ public class InitFSMBv extends OneShotBehaviour{
         }
 
         if (this.agentsLoc == null){
-            this.agentsLoc = new AgentsLoc(agentNames, 5);
+            this.agentsLoc = new AgentsLoc(agentNames, ((ExploPingA)this.myAgent).getCOM_RANGE());
         }
 
         //---------- FSM ----------//
@@ -57,33 +63,44 @@ public class InitFSMBv extends OneShotBehaviour{
 
         // STATES
         String ExploCount = "ExploCount";
-
         String Patrol = "Patrol";
         String Hunt = "Hunt";
-        String Hunt2 = "Hunt2";
+        String SendGPos = "SendGPos";
+        String ReceiveGPos = "ReceiveGPos";
+        String Join = "Join";
 
-        String EndExplo = "EndExplo";
+        // String EndExplo = "EndExplo";
 
         // Exploration
         bigFSM.registerFirstState(new ExploCountBv(this.myAgent, this.myMap, this.agentsLoc, DELAY), ExploCount);
 
         bigFSM.registerState(new PatrolBv(this.myAgent, this.myMap, listCom, DELAY), Patrol);
-        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc), Hunt);
-        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc), Hunt2);
+        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc, WAITINGTIME), Hunt);
+        bigFSM.registerState(new SendGPosBv(this.myAgent, this.agentNames), SendGPos);
+        bigFSM.registerState(new ReceiveGPosBv(this.myAgent, WAITINGTIME), ReceiveGPos);
+        bigFSM.registerState(new JoinBv(this.myAgent, this.myMap, this.agentsLoc, WAITINGTIME), Join);
         // End
         // bigFSM.registerLastState(new EmptyBv(this.myAgent), EndExplo);
 
         // TRANSITIONS
         // bigFSM.registerTransition(ExploCount, ExploCount, 0);
         // bigFSM.registerTransition(ExploCount, ReceivePing, 1);
-        bigFSM.registerTransition(ExploCount, Hunt2, 0);
-        bigFSM.registerTransition(Hunt2, ExploCount, 0);
-        bigFSM.registerTransition(Hunt2, Hunt2, 1);
+        bigFSM.registerTransition(ExploCount, Hunt, 0);
+        bigFSM.registerTransition(Hunt, ExploCount, 0);
+        bigFSM.registerTransition(Hunt, Hunt, 1);
+
+        bigFSM.registerTransition(Hunt, SendGPos, 2);
+        bigFSM.registerDefaultTransition(SendGPos, Hunt);
+
+        bigFSM.registerTransition(ReceiveGPos, Join,1);
+        bigFSM.registerTransition(Join, Join, 1);
+        bigFSM.registerTransition(Join, Hunt, 0);
 
         bigFSM.registerTransition(ExploCount, Patrol, 2);
-        bigFSM.registerDefaultTransition(Patrol, Hunt);
-        bigFSM.registerTransition(Hunt, Patrol, 0);
-        bigFSM.registerTransition(Hunt, Hunt, 1);
+        bigFSM.registerDefaultTransition(Patrol, ReceiveGPos);
+        bigFSM.registerTransition(ReceiveGPos, Hunt, 0);
+        // bigFSM.registerTransition(Hunt, Patrol, 0);
+        // bigFSM.registerTransition(Hunt, Hunt, 1);
 
         this.myAgent.addBehaviour(bigFSM);
 

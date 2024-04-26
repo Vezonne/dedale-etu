@@ -13,9 +13,12 @@ import jade.core.behaviours.Behaviour;
 public class ExploPingA extends AbstractDedaleAgent{
 
     private static final long serialVersionUID = 1L;
+
+    private static final int COM_RANGE = 4;
     
     private MapRepresentation myMap;
     private AgentsLoc myLocs;
+    private String gPos;
 
     protected void setup(){
         super.setup();
@@ -36,10 +39,22 @@ public class ExploPingA extends AbstractDedaleAgent{
         }
 
         List<Behaviour> lb = new ArrayList<Behaviour>();
-        lb.add(new InitFSMBv(this, this.myMap, this.myLocs, list_agentNames));
+        lb.add(new InitFSMBv(this, this.myMap, this.myLocs, this.gPos, list_agentNames));
 
         addBehaviour(new startMyBehaviours(this, lb));
 
         System.out.println("the agent" + this.getLocalName() + " is started");
+    }
+
+    public int getCOM_RANGE(){
+        return COM_RANGE;
+    }
+
+    public String getGPos(){
+        return this.gPos;
+    }
+
+    public void setGPos(String gPos){
+        this.gPos = gPos;
     }
 }

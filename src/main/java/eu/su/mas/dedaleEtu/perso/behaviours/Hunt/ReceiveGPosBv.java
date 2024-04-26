@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.perso.behaviours.Hunt;
 
+import eu.su.mas.dedaleEtu.perso.agents.ExploPingA;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -9,13 +10,11 @@ public class ReceiveGPosBv extends OneShotBehaviour{
 
     private static final long serialVersionUID = 1L;
 
-    private String gPos;
     private long waitingTime;
     private int exitValue;
 
-    public ReceiveGPosBv(Agent a, String gPos, long waitingTime) {
+    public ReceiveGPosBv(Agent a, long waitingTime) {
         super(a);
-        this.gPos = gPos;
         this.waitingTime = waitingTime;
     }
 
@@ -27,11 +26,17 @@ public class ReceiveGPosBv extends OneShotBehaviour{
             MessageTemplate.MatchProtocol("SHARE-GPOS"), 
             MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 
-        this.myAgent.doWait(this.waitingTime);
+        try {
+            this.myAgent.doWait(waitingTime);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         ACLMessage msg = this.myAgent.receive(msgTemplate);
 
         if (msg != null) {
-            gPos = msg.getContent();
+            String gPos = msg.getContent();
+            ((ExploPingA)this.myAgent).setGPos(gPos);
             System.out.println(this.myAgent.getLocalName() + " : received gPos: " + gPos + " from " + msg.getSender().getLocalName());
             exitValue = 1;
         }
