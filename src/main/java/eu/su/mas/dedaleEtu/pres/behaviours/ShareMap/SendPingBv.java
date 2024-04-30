@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.perso.behaviours.ShareMap;
+package eu.su.mas.dedaleEtu.pres.behaviours.ShareMap;
 
 import java.util.List;
 

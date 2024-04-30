@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.perso.knowledge;
+package eu.su.mas.dedaleEtu.pres.knowledge;
 
 import java.io.Serializable;
 import java.util.ArrayList;

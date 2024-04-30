@@ -1,12 +1,12 @@
-package eu.su.mas.dedaleEtu.perso.behaviours.ShareMap;
+package eu.su.mas.dedaleEtu.pres.behaviours.ShareMap;
 
 import java.io.IOException;
 import java.util.List;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.pres.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.pres.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;

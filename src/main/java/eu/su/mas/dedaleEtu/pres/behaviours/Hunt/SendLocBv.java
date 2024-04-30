@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.perso.behaviours.ShareMap;
+package eu.su.mas.dedaleEtu.pres.behaviours.Hunt;
 
 import java.util.List;
 
@@ -8,29 +8,28 @@ import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
-public class SendPingBv extends OneShotBehaviour{
 
+public class SendLocBv extends OneShotBehaviour{
     private static final long serialVersionUID = 1L;
 
-    private List<String> receivers;
-    private String protocol;
+    private List<String> receivers;  
 
-    public SendPingBv(Agent a, List<String> receivers, String protocol) {
+    public SendLocBv(Agent a, List<String> receivers) {
         super(a);
         this.receivers = receivers;
-        this.protocol = protocol;
     }
     
     @Override
     public void action() {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-        msg.setProtocol(protocol);
-        msg.setSender(this.myAgent.getAID());
-        for (String agent : receivers){
+        msg.setSender(myAgent.getAID());
+        msg.setProtocol("SHARE-LOC");
+        for(String agent : receivers){
             msg.addReceiver(new AID(agent, AID.ISLOCALNAME));
         }
+        msg.setContent(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().toString());
+
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-        // System.out.println(this.myAgent.getLocalName() + " : sent " + protocol + " to " + receivers);
+        // System.out.println(this.myAgent.getLocalName() + " : sent loc to " + receivers);
     }
-    
 }

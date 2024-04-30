@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.perso.behaviours.Hunt;
+package eu.su.mas.dedaleEtu.pres.behaviours.Hunt;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -9,10 +9,9 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.perso.agents.ExploPingA;
-import eu.su.mas.dedaleEtu.perso.knowledge.AgentsLoc;
-import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.perso.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.pres.knowledge.AgentsLoc;
+import eu.su.mas.dedaleEtu.pres.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.pres.knowledge.MapRepresentation.MapAttribute;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 
@@ -22,10 +21,9 @@ public class HuntBv extends OneShotBehaviour {
 
     private MapRepresentation myMap;
 	private AgentsLoc agentsLoc;
+	private List<String> path;
 	private long waitingTime;
 
-	private String previousPos;
-	private String previousMove;
 	private int exitValue;
 
     public HuntBv(final Agent myAgent, MapRepresentation myMap, AgentsLoc agentsLoc, long waitingTime) {
@@ -33,9 +31,6 @@ public class HuntBv extends OneShotBehaviour {
         this.myMap = myMap;
         this.agentsLoc = agentsLoc;
 		this.waitingTime = waitingTime;
-
-		this.previousPos = null;
-		this.previousMove = null;
     }
 
     @Override
@@ -52,6 +47,7 @@ public class HuntBv extends OneShotBehaviour {
 
         if (myPosition!=null){
 
+			// Observe the nodes
 			this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 			List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();
 
@@ -83,46 +79,76 @@ public class HuntBv extends OneShotBehaviour {
 				// System.out.println(this.myAgent.getLocalName() + " : ÇA PUUUUUUE !!!!!!!!!!!!!!!!!");
 
 				List<String> occupiedNodes = new ArrayList<String>();
+				String nextNodeId = null;
 
 				for (String agent : this.agentsLoc.getCloseAgents()){
 					occupiedNodes.add(this.agentsLoc.getAgentLocation(agent).getLocationId());
 				}
-				
-				String nextNodeId;
-				if (this.previousMove != null && !this.previousMove.equals(myPosition.getLocationId()) && !occupiedNodes.contains(previousMove)) {
-					((ExploPingA)this.myAgent).setGPos(previousMove);
-					nextNodeId = previousMove;
-					exitValue = 2;
+				for (String gollem : this.agentsLoc.getGBlock()){
+					occupiedNodes.add(gollem);
 				}
-				else{
 
-					int randomIndex = (int)(Math.random() * stenchLocations.size());
-					nextNodeId = stenchLocations.get(randomIndex);
-					
-					if (occupiedNodes.containsAll(stenchLocations)){
-						if (clearLocations.size()>0){
-							randomIndex = (int)(Math.random() * clearLocations.size());
-							nextNodeId = clearLocations.get(randomIndex);
+				if (this.agentsLoc.getGPos() != null){
+					List<String> arroundG = this.myMap.getNeighbors(this.agentsLoc.getGPos());
+
+					if (!occupiedNodes.containsAll(arroundG)){
+						int randomIndex = (int)(Math.random() * arroundG.size());
+						String dest = arroundG.get(randomIndex);
+
+						while (occupiedNodes.contains(dest)){
+							randomIndex = (int)(Math.random() * arroundG.size());
+							dest = arroundG.get(randomIndex);
 						}
-						else{
-							randomIndex = (int)(Math.random() * stenchLocations.size());
-							nextNodeId = stenchLocations.get(randomIndex);
+						occupiedNodes.add(this.agentsLoc.getGPos());
+
+						try{
+							path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), dest, occupiedNodes);
+							nextNodeId = path.get(0);
+						} catch(Exception e1){
+							try{
+								path = this.myMap.getShortestPath(myPosition.getLocationId(), dest);
+								nextNodeId = path.get(0);
+							} catch(Exception e2){
+								nextNodeId = null;
+							}
 						}
 					}
 					else{
+						nextNodeId = this.agentsLoc.getPrevMove();
+						exitValue = 0;
+					}
+				}
+				else{
+					if (!this.agentsLoc.getPrevMove().equals(myPosition.getLocationId())) {
+						if (!occupiedNodes.contains(this.agentsLoc.getPrevMove())){
+							this.agentsLoc.setGPos(this.agentsLoc.getPrevMove());
+							nextNodeId = this.agentsLoc.getPrevMove();
+							exitValue = 2;
+						}
+					}
+				}
+
+				if (nextNodeId == null){
+
+					if (occupiedNodes.containsAll(stenchLocations)){
+						nextNodeId = this.agentsLoc.getPrevMove();
+						exitValue = 0;
+					}
+					else{
+						int randomIndex = (int)(Math.random() * stenchLocations.size());
+						nextNodeId = stenchLocations.get(randomIndex);
 						while(occupiedNodes.contains(nextNodeId)){
 							randomIndex = (int)(Math.random() * stenchLocations.size());
 							nextNodeId = stenchLocations.get(randomIndex);
 						}
+						exitValue = 1;
 					}
 
-					previousMove = nextNodeId;
-					previousPos = myPosition.getLocationId();
-					// Move towards the target location
 					exitValue = 1;
+					this.agentsLoc.setPrevMove(nextNodeId);
+					this.agentsLoc.setPrevPos(myPosition.getLocationId());
+					((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNodeId));
 				}
-				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNodeId));
-
 			}
         }
 	}
