@@ -20,6 +20,9 @@ public class JoinBv extends OneShotBehaviour {
     private AgentsLoc agentsLoc;
     private long waitingTime;
     private int exitValue;
+    private List<String> path;
+    private String previousMove;
+    private String previousPos;
     
     public JoinBv(final Agent a, MapRepresentation myMap, AgentsLoc agentsLoc, long waitingTime) {
         super(a);
@@ -31,6 +34,9 @@ public class JoinBv extends OneShotBehaviour {
     @Override
     public void action() {
         exitValue = 0;
+        this.previousPos = null;
+        this.previousMove = null;
+        String nextNodeId = null;
 
         try {
             this.myAgent.doWait(waitingTime);
@@ -39,6 +45,26 @@ public class JoinBv extends OneShotBehaviour {
         }
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+
+        if(this.previousMove != null && !myPosition.getLocationId().equals(this.previousMove)){
+            System.out.println(this.myAgent.getLocalName() + " : I'm stuck, recalculating path");
+
+            List<String> occupiedNodes = new ArrayList<String>();
+            occupiedNodes.add(this.previousMove);
+            for (String agent: this.agentsLoc.getCloseAgents()){
+                occupiedNodes.add(this.agentsLoc.getAgentLocation(agent).getLocationId());
+            }
+
+            try{
+                this.path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), ((ExploPingA)this.myAgent).getGPos(), occupiedNodes);
+                nextNodeId = this.path.get(0);
+            }catch(Exception e){
+                path = null;
+            }
+        }
+        else {
+            this.path = this.myMap.getShortestPath(myPosition.getLocationId(), ((ExploPingA)this.myAgent).getGPos());
+        }
         // List<String> occupiedNodes=new ArrayList<String>();
 
         // for (String agent: agentsLoc.getCloseAgents()) {
@@ -48,7 +74,6 @@ public class JoinBv extends OneShotBehaviour {
         //     }
         // }
         // List<String> path = this.myMap.getShortestPathWithoutNodes(myPosition.getLocationId(), ((ExploPingA)this.myAgent).getGPos(), occupiedNodes);
-        List<String> path = this.myMap.getShortestPath(myPosition.getLocationId(), ((ExploPingA)this.myAgent).getGPos());
 
         if (path != null && path.size() > 1) {
             String nextNode = path.get(0);

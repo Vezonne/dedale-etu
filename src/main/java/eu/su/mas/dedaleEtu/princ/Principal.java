@@ -9,7 +9,7 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.DummyMovingAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.DummyTankerAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreSoloAgent;
-import eu.su.mas.dedaleEtu.pres.agents.ExploPingA;
+import eu.su.mas.dedaleEtu.perso.agents.ExploPingA;
 import eu.su.mas.dedaleEtu.perso.agents.FirstA;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agents.GateKeeperAgent;

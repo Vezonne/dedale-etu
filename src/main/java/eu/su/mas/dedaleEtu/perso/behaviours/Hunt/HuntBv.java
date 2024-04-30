@@ -33,9 +33,6 @@ public class HuntBv extends OneShotBehaviour {
         this.myMap = myMap;
         this.agentsLoc = agentsLoc;
 		this.waitingTime = waitingTime;
-
-		this.previousPos = null;
-		this.previousMove = null;
     }
 
     @Override
@@ -125,6 +122,10 @@ public class HuntBv extends OneShotBehaviour {
 
 			}
         }
+		if (exitValue == 0) {
+			this.previousPos = null;
+			this.previousMove = null;
+		}
 	}
     
 	@Override

@@ -27,9 +27,9 @@ public class InitFSMBv extends OneShotBehaviour{
 
     private static final long serialVersionUID = 1L;
 
-	private static final int DELAY = 100;
-	private static final int WAITINGTIME = 400;
-    private static final int PERIOD = 250;
+	private static final int DELAY = 400;
+	private static final int WAITINGTIME = 200;
+    private static final int PERIOD = 200;
 
     private MapRepresentation myMap;
     private AgentsLoc agentsLoc;
@@ -75,10 +75,10 @@ public class InitFSMBv extends OneShotBehaviour{
         bigFSM.registerFirstState(new ExploCountBv(this.myAgent, this.myMap, this.agentsLoc, DELAY), ExploCount);
 
         bigFSM.registerState(new PatrolBv(this.myAgent, this.myMap, listCom, DELAY), Patrol);
-        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc, WAITINGTIME), Hunt);
+        bigFSM.registerState(new HuntBv(this.myAgent, this.myMap, this.agentsLoc, DELAY), Hunt);
         bigFSM.registerState(new SendGPosBv(this.myAgent, this.agentNames), SendGPos);
         bigFSM.registerState(new ReceiveGPosBv(this.myAgent, WAITINGTIME), ReceiveGPos);
-        bigFSM.registerState(new JoinBv(this.myAgent, this.myMap, this.agentsLoc, WAITINGTIME), Join);
+        bigFSM.registerState(new JoinBv(this.myAgent, this.myMap, this.agentsLoc, DELAY), Join);
         // End
         // bigFSM.registerLastState(new EmptyBv(this.myAgent), EndExplo);
 
@@ -121,7 +121,7 @@ public class InitFSMBv extends OneShotBehaviour{
         shareMap.registerFirstState(new ReceivePingBv(this.myAgent, this.listCom, "PING", WAITINGTIME, PERIOD), ReceivePing);
         shareMap.registerState(new SendPingBv(this.myAgent, this.agentNames, "PING"), SendPing);
 
-        shareMap.registerState(new ReceivePingBv(this.myAgent, this.listCom, "PONG", WAITINGTIME, DELAY), ReceivePong);
+        shareMap.registerState(new ReceivePingBv(this.myAgent, this.listCom, "PONG", WAITINGTIME, PERIOD), ReceivePong);
         shareMap.registerState(new SendPingBv(this.myAgent, this.listCom, "PONG"), SendPong);
 
         shareMap.registerState(new ReceiveMapBv(this.myAgent, this.myMap, this.listCom, WAITINGTIME), ReceiveMap);
@@ -150,7 +150,7 @@ public class InitFSMBv extends OneShotBehaviour{
         String sendLoc = "sendLoc";
         String receiveLoc = "receiveLoc";
 
-        shareLoc.registerFirstState(new ReceiveLocBv(this.myAgent, this.myMap, agentsLoc, DELAY), receiveLoc);
+        shareLoc.registerFirstState(new ReceiveLocBv(this.myAgent, this.myMap, agentsLoc, PERIOD), receiveLoc);
         shareLoc.registerState(new SendLocBv(this.myAgent, agentNames), sendLoc);
 
         shareLoc.registerDefaultTransition(receiveLoc, sendLoc);
